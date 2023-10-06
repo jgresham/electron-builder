@@ -115,7 +115,7 @@ export class DmgTarget extends Target {
       }
     }
 
-    const args = ["--sign", identity.hash]
+    const args = ["--sign", identity.hash!]
     if (keychainFile != null) {
       args.push("--keychain", keychainFile)
     }
@@ -241,12 +241,14 @@ async function computeAssetSize(cancellationToken: CancellationToken, dmgFile: s
 
 async function customizeDmg(volumePath: string, specification: DmgOptions, packager: MacPackager, backgroundFile: string | null | undefined) {
   const window = specification.window
+  const isValidIconTextSize = !!specification.iconTextSize && specification.iconTextSize >= 10 && specification.iconTextSize <= 16
+  const iconTextSize = isValidIconTextSize ? specification.iconTextSize : 12
   const env: any = {
     ...process.env,
     volumePath,
     appFileName: `${packager.appInfo.productFilename}.app`,
     iconSize: specification.iconSize || 80,
-    iconTextSize: specification.iconTextSize || 12,
+    iconTextSize,
 
     PYTHONIOENCODING: "utf8",
   }
@@ -309,7 +311,7 @@ async function customizeDmg(volumePath: string, specification: DmgOptions, packa
   }
   try {
     await executePython("python3")
-  } catch (error) {
+  } catch (error: any) {
     await executePython("python")
   }
   return packager.packagerOptions.effectiveOptionComputed == null || !(await packager.packagerOptions.effectiveOptionComputed({ volumePath, specification, packager }))

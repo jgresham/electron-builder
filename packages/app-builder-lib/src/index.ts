@@ -31,6 +31,7 @@ export { PkgOptions, PkgBackgroundOptions, BackgroundAlignment, BackgroundScalin
 export { WindowsConfiguration } from "./options/winOptions"
 export { AppXOptions } from "./options/AppXOptions"
 export { MsiOptions } from "./options/MsiOptions"
+export { MsiWrappedOptions } from "./options/MsiWrappedOptions"
 export { CommonWindowsInstallerConfiguration } from "./options/CommonWindowsInstallerConfiguration"
 export { NsisOptions, NsisWebOptions, PortableOptions, CommonNsisOptions } from "./targets/nsis/nsisOptions"
 export { LinuxConfiguration, DebOptions, CommonLinuxOptions, LinuxTargetSpecificOptions, AppImageOptions, FlatpakOptions } from "./options/linuxOptions"
@@ -88,6 +89,10 @@ export function build(options: PackagerOptions & PublishOptions, packager: Packa
       }
 
       for (const newArtifact of newArtifacts) {
+        if (buildResult.artifactPaths.includes(newArtifact)) {
+          log.warn({ newArtifact }, "skipping publish of artifact, already published")
+          continue
+        }
         buildResult.artifactPaths.push(newArtifact)
         for (const publishConfiguration of publishConfigurations) {
           publishManager.scheduleUpload(

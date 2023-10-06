@@ -37,30 +37,41 @@ Two options are available — [include](#NsisOptions-include) and [script](#Nsis
 Keep in mind — if you customize NSIS script, you should always state about it in the issue reports. And don't expect that your issue will be resolved.
 
 1. Add file `build/installer.nsh`.
-2. Define wanted macro to customise: `customHeader`, `preInit`, `customInit`, `customUnInit`, `customInstall`, `customUnInstall`, `customRemoveFiles`, `customInstallMode`.
-    
+2. Define wanted macro to customise: `customHeader`, `preInit`, `customInit`, `customUnInit`, `customInstall`, `customUnInstall`, `customRemoveFiles`, `customInstallMode`, `customWelcomePage`, `customUnWelcomePage`.
+
     !!! example
         ```nsis
         !macro customHeader
           !system "echo '' > ${BUILD_RESOURCES_DIR}/customHeader"
         !macroend
-        
+
         !macro preInit
           ; This macro is inserted at the beginning of the NSIS .OnInit callback
           !system "echo '' > ${BUILD_RESOURCES_DIR}/preInit"
         !macroend
-        
+
         !macro customInit
           !system "echo '' > ${BUILD_RESOURCES_DIR}/customInit"
         !macroend
-        
+
         !macro customInstall
           !system "echo '' > ${BUILD_RESOURCES_DIR}/customInstall"
         !macroend
-        
+
         !macro customInstallMode
-          # set $isForceMachineInstall or $isForceCurrentInstall 
+          # set $isForceMachineInstall or $isForceCurrentInstall
           # to enforce one or the other modes.
+        !macroend
+
+        !macro customWelcomePage
+          # Welcome Page is not added by default for installer.
+          !insertMacro MUI_PAGE_WELCOME
+        !macroend
+
+        !macro customUnWelcomePage
+          !define MUI_WELCOMEPAGE_TITLE "custom title for uninstaller welcome page"
+          !define MUI_WELCOMEPAGE_TEXT "custom text for uninstaller welcome page $\r$\n more"
+          !insertmacro MUI_UNPAGE_WELCOME
         !macroend
         ```
 
@@ -81,7 +92,7 @@ If you want to include additional resources for use during installation, such as
 
 ??? question "Is there a way to call just when the app is installed (or uninstalled) manually and not on update?"
     Use `${isUpdated}`.
-    
+
     ```nsis
     ${ifNot} ${isUpdated}
       # your code
@@ -107,7 +118,8 @@ To build portable app, set target to `portable` (or pass `--win portable`).
 
 For portable app, following environment variables are available:
 
-* `PORTABLE_EXECUTABLE_DIR` - dir where portable executable located.
+* `PORTABLE_EXECUTABLE_FILE` - path to the portable executable.
+* `PORTABLE_EXECUTABLE_DIR` - directory where the portable executable is located.
 * `PORTABLE_EXECUTABLE_APP_FILENAME` - sanitized app name to use in [file paths](https://github.com/electron-userland/electron-builder/issues/3186#issue-345489962).
 
 ## Common Questions
@@ -115,7 +127,7 @@ For portable app, following environment variables are available:
 ??? question "How do change the default installation directory to custom?"
 
     It is very specific requirement. Do not do if you are not sure. Add [custom macro](#custom-nsis-script):
-    
+
     ```nsis
     !macro preInit
       SetRegView 64
@@ -128,9 +140,9 @@ For portable app, following environment variables are available:
     ```
 
 ??? question "Is it possible to made single installer that will allow configuring user/machine installation?"
-    
+
     Yes, you need to switch to assisted installer (not default one-click).
-    
+
     package.json
     ```json
     "build": {
